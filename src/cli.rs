@@ -1,12 +1,14 @@
 use clap::Parser;
 use std::path::PathBuf;
 
+use crate::errors::Errcode;
+
 #[derive(Parser, Debug)]
 #[clap(author, version, about)]
 pub struct Args {
     /// Activate debug mode
-    #[clap(short, long)]
-    debug: bool,
+    #[clap(short = 'l', long = "log", default_value = "debug")]
+    pub log_level: String,
 
     /// Command to execute inside the container
     #[clap(short, long)]
@@ -21,6 +23,10 @@ pub struct Args {
     pub mount_dir: PathBuf,
 }
 
-pub fn parse_args() -> Args {
-    Args::from_args()
+pub fn parse_args() -> Result<Args, Errcode> {
+    let args = Args::parse();
+    if !args.mount_dir.exists() || !args.mount_dir.is_dir() {
+        return Err(Errcode::InvalidDir(args.mount_dir));
+    }
+    Ok(args)
 }
