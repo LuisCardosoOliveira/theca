@@ -6,6 +6,12 @@ pub enum Errcode {
     InvalidDir(PathBuf),
     #[error("Unknown error. please check the logs.")]
     _Unknown,
+    #[error("An error in the container has occurred.")]
+    ContainerError(u8),
+    #[error("This is not supported.")]
+    NotSupported(u8),
+    #[error("The argument pass is invalid.")]
+    ArgumentInvalid(&'static str),
 }
 
 impl Errcode {
@@ -19,7 +25,7 @@ impl Errcode {
 pub fn exit_with_retcode(res: Result<(), Errcode>) {
     match res {
         Ok(_) => {
-            tracing::debug!("exit without any error, returning 0");
+            tracing::info!("exit without any error, returning 0");
             exit(0);
         }
         Err(e) => {

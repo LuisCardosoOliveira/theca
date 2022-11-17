@@ -21,27 +21,31 @@
 
 use std::process::exit;
 
+use crate::errors::exit_with_retcode;
+
 mod cli;
+mod config;
+mod container;
 mod errors;
+
+#[macro_use]
+extern crate scan_fmt;
 
 fn main() {
     // Initialize tracing
     tracing_subscriber::fmt::init();
 
-    let args = match cli::parse_args() {
-        Ok(args) => args,
+    match cli::parse_args() {
+        Ok(args) => {
+            tracing::info!("Logs args: {:?}", args);
+            exit_with_retcode(container::start(args));
+        }
         Err(e) => {
             tracing::error!("Error while parsing arguments:\n\t{}", e);
             exit(e.get_retcode());
         }
     };
-
-    // Setup logging & RUST_LOG from args
     if std::env::var("RUST_LOG").is_err() {
-        std::env::set_var(
-            "RUST_LOG",
-            format!("{},hyper=info,mio=info", args.log_level),
-        );
+        std::env::set_var("RUST_LOG", format!("{},hyper=info,mio=info", "debug"));
     }
-    tracing::info!("Logs args: {:?}", args);
 }
